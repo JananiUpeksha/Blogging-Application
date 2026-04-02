@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/HomeFragment">
+
+    <fragment android:id="@+id/HomeFragment"
+        android:name="com.example.chatapp.HomeFragment"
+        android:label="Talk Pal"
+        tools:layout="@layout/fragment_home">
+        <action android:id="@+id/action_home_to_messageView" app:destination="@id/MessageViewFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_createEdit" app:destination="@id/CreateEditFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_search" app:destination="@id/SearchFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_home_to_settings" app:destination="@id/SettingsFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/MessageViewFragment"
+        android:name="com.example.chatapp.MessageViewFragment"
+        android:label="Message"
+        tools:layout="@layout/fragment_message_view">
+        <argument android:name="messageId" app:argType="long" android:defaultValue="-1L"/>
+        <action android:id="@+id/action_messageView_to_createEdit" app:destination="@id/CreateEditFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_messageView_to_emailShare" app:destination="@id/EmailShareFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+        <action android:id="@+id/action_messageView_to_uploadSocial" app:destination="@id/UploadSocialFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/CreateEditFragment"
+        android:name="com.example.chatapp.CreateEditFragment"
+        android:label="New Post"
+        tools:layout="@layout/fragment_create_edit">
+        <argument android:name="messageId" app:argType="long" android:defaultValue="-1L"/>
+    </fragment>
+
+    <fragment android:id="@+id/SearchFragment"
+        android:name="com.example.chatapp.SearchFragment"
+        android:label="Search"
+        tools:layout="@layout/fragment_search">
+        <action android:id="@+id/action_search_to_messageView" app:destination="@id/MessageViewFragment" app:enterAnim="@anim/slide_in_right" app:exitAnim="@anim/slide_out_left" app:popEnterAnim="@anim/slide_in_left" app:popExitAnim="@anim/slide_out_right"/>
+    </fragment>
+
+    <fragment android:id="@+id/SettingsFragment"
+        android:name="com.example.chatapp.SettingsFragment"
+        android:label="Settings"
+        tools:layout="@layout/fragment_settings"/>
+
+    <fragment android:id="@+id/EmailShareFragment"
+        android:name="com.example.chatapp.EmailShareFragment"
+        android:label="Share Message"
+        tools:layout="@layout/fragment_email_share">
+        <argument android:name="messageId" app:argType="long" android:defaultValue="-1L"/>
+    </fragment>
+
+    <fragment android:id="@+id/UploadSocialFragment"
+        android:name="com.example.chatapp.UploadSocialFragment"
+        android:label="Upload to Social"
+        tools:layout="@layout/fragment_upload_social">
+        <argument android:name="messageId" app:argType="long" android:defaultValue="-1L"/>
+    </fragment>
+</navigation>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    res/xml/file_paths.xml
+    Referenced by the FileProvider in AndroidManifest.xml
+    Allows sharing camera-captured images from external files dir.
+-->
+<paths>
+    <external-files-path
+        name="my_images"
+        path="Pictures/" />
+</paths>

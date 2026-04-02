@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--  Brand  -->
+    <color name="purple_primary">#957DAD</color>
+    <color name="purple_accent">#7C4DFF</color>
+    <color name="purple_light">#F3E5F5</color>
+    <color name="purple_light_deep">#BD8DCE</color>
+    <color name="orange_primary">#EC5B13</color>
+    <color name="orange_light">#FFF0E8</color>
+    <!--  Backgrounds  -->
+    <color name="background_light">#F8F6F6</color>
+    <color name="dark_surface">#1E1E1E</color>
+    <color name="chip_inactive_bg">#EFEFEF</color>
+    <color name="selection_highlight">#1AEC5B13</color>
+    <color name="input_stroke">#DDDDDD</color>
+    <color name="divider">#F0F0F0</color>
+    <!--  Text  -->
+    <color name="text_primary">#1A1A1A</color>
+    <color name="text_secondary">#757575</color>
+    <!--  Material defaults  -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
