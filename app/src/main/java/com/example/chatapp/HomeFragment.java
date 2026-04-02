@@ -63,6 +63,10 @@ public class HomeFragment extends Fragment {
     }
 
     private void setupClickListeners() {
+        // Navigate to Search Screen
+        binding.btnSearch.setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigate(R.id.action_home_to_search));
+
         binding.fabNewMessage.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigate(R.id.action_home_to_createEdit));
 
@@ -74,18 +78,19 @@ public class HomeFragment extends Fragment {
         binding.btnDeleteSelection.setOnClickListener(v -> confirmDeleteSelected());
     }
 
+    // Inside HomeFragment.java
     private void confirmDeleteSelected() {
         List<Long> ids = adapter.getSelectedIds();
         if (ids.isEmpty()) return;
 
         new AlertDialog.Builder(requireContext())
-                .setTitle("Delete " + ids.size() + " posts?")
-                .setMessage("This will permanently remove these items from your local database.")
+                .setTitle("Delete " + ids.size() + " posts?") // Now shows 2, 3, etc.
+                .setMessage("Are you sure you want to delete these " + ids.size() + " items?")
                 .setPositiveButton("Delete", (d, w) -> {
-                    db.deleteMessages(ids);
+                    db.deleteMessages(ids); // Hits the transaction method
                     adapter.clearSelection();
                     loadMessages();
-                    Toast.makeText(requireContext(), "Posts deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), ids.size() + " posts deleted", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();

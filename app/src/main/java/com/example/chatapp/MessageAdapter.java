@@ -111,12 +111,26 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             });
         }
 
+        // Inside MessageAdapter.java
         private void toggleSelection(Message msg) {
-            if (selected.contains(msg.id)) selected.remove(msg.id);
-            else selected.add(msg.id);
-            if (selected.isEmpty()) multiSelectMode = false;
-            notifyDataSetChanged();
-            selectionListener.onSelectionChanged(selected.size());
+            if (selected.contains(msg.id)) {
+                selected.remove(msg.id);
+            } else {
+                selected.add(msg.id);
+            }
+
+            if (selected.isEmpty()) {
+                multiSelectMode = false;
+            }
+
+            // CRITICAL: You must notify the adapter that this specific item changed
+            // to update the checkbox/background color visually.
+            notifyItemChanged(items.indexOf(msg));
+
+            // CRITICAL: This updates the "X selected" text in the HomeFragment
+            if (selectionListener != null) {
+                selectionListener.onSelectionChanged(selected.size());
+            }
         }
     }
 }
