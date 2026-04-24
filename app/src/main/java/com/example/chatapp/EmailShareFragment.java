@@ -7,32 +7,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
-
 import com.example.chatapp.databinding.FragmentEmailShareBinding;
 
-/**
- * Email share screen.
- *
- * Pre-fills subject with message title and body with message content.
- * On "Send" fires an ACTION_SENDTO intent that opens the user's email client
- * (Gmail / Outlook / etc.).
- *
- * If an image is attached, it is also shared via ACTION_SEND with EXTRA_STREAM.
- */
 public class EmailShareFragment extends Fragment {
 
     private FragmentEmailShareBinding binding;
     private DatabaseHelper db;
-    private Message        message;
+    private Message message;
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         binding = FragmentEmailShareBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -52,14 +41,13 @@ public class EmailShareFragment extends Fragment {
 
         prefillFields();
         setupClickListeners();
+        checkNetworkAndUpdateUI();
     }
-
-    // ── Pre-fill ───────────────────────────────────────────────────
 
     private void prefillFields() {
         if (message == null) return;
-        binding.etSubject.setText("Talk Pal: " + message.title);
-        // Body shows first ~150 chars of the message body
+        // Changed from "Talk Pal" to "DraftSpace"
+        binding.etSubject.setText("DraftSpace: " + message.title);
         String preview = message.body != null
                 ? message.body.substring(0, Math.min(message.body.length(), 150))
                 : "";
@@ -72,73 +60,118 @@ public class EmailShareFragment extends Fragment {
         binding.tvAttachmentInfo.setText(sizeInfo);
     }
 
-    // ── Clicks ─────────────────────────────────────────────────────
-
     private void setupClickListeners() {
         binding.btnBack.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).popBackStack());
 
-        binding.btnSend.setOnClickListener(v -> sendEmail());
-
-        // Quick-send buttons available in your new XML
-        binding.btnGmail.setOnClickListener(v   -> sendEmailWithPackage("com.google.android.gm"));
-        binding.btnOutlook.setOnClickListener(v -> sendEmailWithPackage("com.microsoft.office.outlook"));
-
-        // btnYahoo was removed from fragment_email_share.xml, so we remove it here too
-
-        binding.btnOthers.setOnClickListener(v  -> sendEmail()); // generic chooser
+        binding.btnSend.setOnClickListener(v -> checkAndSendEmail());
+        binding.btnGmail.setOnClickListener(v -> checkAndSendEmailWithPackage("com.google.android.gm"));
+        binding.btnOutlook.setOnClickListener(v -> checkAndSendEmailWithPackage("com.microsoft.office.outlook"));
+        binding.btnOthers.setOnClickListener(v -> checkAndSendEmail());
     }
 
-    // ── Email Intent ───────────────────────────────────────────────
+    private void checkNetworkAndUpdateUI() {
+        if (!NetworkUtils.isOnline(requireContext())) {
+            // Disable all email buttons
+            binding.btnSend.setEnabled(false);
+            binding.btnGmail.setEnabled(false);
+            binding.btnOutlook.setEnabled(false);
+            binding.btnOthers.setEnabled(false);
+
+            binding.btnSend.setAlpha(0.5f);
+            binding.btnGmail.setAlpha(0.5f);
+            binding.btnOutlook.setAlpha(0.5f);
+            binding.btnOthers.setAlpha(0.5f);
+
+            Toast.makeText(requireContext(),
+                    "📡 You are offline. Please connect to internet to send emails.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            binding.btnSend.setEnabled(true);
+            binding.btnGmail.setEnabled(true);
+            binding.btnOutlook.setEnabled(true);
+            binding.btnOthers.setEnabled(true);
+
+            binding.btnSend.setAlpha(1f);
+            binding.btnGmail.setAlpha(1f);
+            binding.btnOutlook.setAlpha(1f);
+            binding.btnOthers.setAlpha(1f);
+        }
+    }
+
+    private void checkAndSendEmail() {
+        if (!NetworkUtils.isOnline(requireContext())) {
+            showNoInternetDialog();
+            return;
+        }
+        sendEmail();
+    }
+
+    private void checkAndSendEmailWithPackage(String packageName) {
+        if (!NetworkUtils.isOnline(requireContext())) {
+            showNoInternetDialog();
+            return;
+        }
+        sendEmailWithPackage(packageName);
+    }
+
+    private void showNoInternetDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("📡 No Internet Connection")
+                .setMessage("Cannot send emails without internet.\n\n" +
+                        "Please connect to WiFi or mobile data and try again.")
+                .setPositiveButton("Open WiFi Settings", (d, w) -> {
+                    startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
+                })
+                .setNegativeButton("Cancel", null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+    }
 
     private void sendEmail() {
-        String to      = binding.etTo.getText().toString().trim();
+        String to = binding.etTo.getText().toString().trim();
         String subject = binding.etSubject.getText().toString().trim();
-        String body    = buildEmailBody();
+        String body = buildEmailBody();
 
         if (message != null && message.imagePath != null && !message.imagePath.isEmpty()) {
-            // Share with image attachment
             Intent intent = new Intent(Intent.ACTION_SEND);
             intent.setType("message/rfc822");
-            intent.putExtra(Intent.EXTRA_EMAIL,   new String[]{to});
+            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
             intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            intent.putExtra(Intent.EXTRA_TEXT,    body);
-            intent.putExtra(Intent.EXTRA_STREAM,  Uri.parse(message.imagePath));
+            intent.putExtra(Intent.EXTRA_TEXT, body);
+            intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(message.imagePath));
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             startActivity(Intent.createChooser(intent, "Send via"));
         } else {
-            // Text-only
             Intent intent = new Intent(Intent.ACTION_SENDTO);
             intent.setData(Uri.parse("mailto:"));
-            intent.putExtra(Intent.EXTRA_EMAIL,   new String[]{to});
+            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
             intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            intent.putExtra(Intent.EXTRA_TEXT,    body);
+            intent.putExtra(Intent.EXTRA_TEXT, body);
             try {
                 startActivity(Intent.createChooser(intent, "Send email"));
             } catch (android.content.ActivityNotFoundException e) {
-                Toast.makeText(requireContext(),
-                        "No email app found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(requireContext(), "No email app found", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void sendEmailWithPackage(String packageName) {
-        String to      = binding.etTo.getText().toString().trim();
+        String to = binding.etTo.getText().toString().trim();
         String subject = binding.etSubject.getText().toString().trim();
-        String body    = buildEmailBody();
+        String body = buildEmailBody();
 
         Intent intent = new Intent(Intent.ACTION_SENDTO);
         intent.setData(Uri.parse("mailto:"));
         intent.setPackage(packageName);
-        intent.putExtra(Intent.EXTRA_EMAIL,   new String[]{to});
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-        intent.putExtra(Intent.EXTRA_TEXT,    body);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
 
         try {
             startActivity(intent);
         } catch (android.content.ActivityNotFoundException e) {
-            // App not installed – fall back to chooser
-            sendEmail();
+            Toast.makeText(requireContext(), "App not installed", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -148,8 +181,15 @@ public class EmailShareFragment extends Fragment {
             sb.append(message.title).append("\n\n");
             if (message.body != null) sb.append(message.body).append("\n\n");
         }
-        sb.append("— Shared from Talk Pal");
+        // Changed from "Talk Pal" to "DraftSpace"
+        sb.append("— Shared from DraftSpace");
         return sb.toString();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        checkNetworkAndUpdateUI();
     }
 
     @Override

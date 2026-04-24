@@ -23,8 +23,8 @@ public class MessageViewFragment extends Fragment {
 
     private FragmentMessageViewBinding binding;
     private DatabaseHelper db;
-    private Message        message;
-    private long           messageId = -1;
+    private Message message;
+    private long messageId = -1;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -61,8 +61,9 @@ public class MessageViewFragment extends Fragment {
         binding.tvTitle.setText(message.title);
         binding.tvBody.setText(message.body);
 
-        String dateStr = (String) DateFormat.format(
-                "MMMM dd, yyyy • hh:mm aa", new Date(message.timestamp));
+        // FIXED: Removed incorrect cast to String
+        String dateStr = DateFormat.format(
+                "MMMM dd, yyyy • hh:mm aa", new Date(message.timestamp)).toString();
         binding.tvTimestamp.setText(dateStr);
 
         if (message.imagePath != null && !message.imagePath.isEmpty()) {
@@ -75,7 +76,10 @@ public class MessageViewFragment extends Fragment {
             binding.imageCard.setVisibility(View.GONE);
         }
 
-        binding.tvPendingBadge.setVisibility(message.isPending ? View.VISIBLE : View.GONE);
+        // Show pending badge if message is not synced
+        if (binding.tvPendingBadge != null) {
+            binding.tvPendingBadge.setVisibility(message.isPending ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setupClickListeners() {
@@ -113,9 +117,10 @@ public class MessageViewFragment extends Fragment {
                 .setTitle("Delete this post?")
                 .setMessage("This action cannot be undone.")
                 .setPositiveButton("Delete", (d, w) -> {
-                    // This method call is now valid
-                    db.deleteMessage(messageId);
-                    Toast.makeText(requireContext(), "Post deleted", Toast.LENGTH_SHORT).show();
+                    if (db != null) {
+                        db.deleteMessage(messageId);
+                        Toast.makeText(requireContext(), "Post deleted", Toast.LENGTH_SHORT).show();
+                    }
                     NavHostFragment.findNavController(this).popBackStack();
                 })
                 .setNegativeButton("Cancel", null)

@@ -5,130 +5,214 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+    private static final String TAG = "DatabaseHelper";
     private static final String DB_NAME = "talkpal.db";
-    private static final int DB_VERSION = 1;
-
-    public static final String TABLE = "messages";
-    public static final String COL_ID = "_id";
-    public static final String COL_TITLE = "title";
-    public static final String COL_BODY = "content";
-    public static final String COL_IMAGE = "image_path";
-    public static final String COL_TS = "timestamp";
-    public static final String COL_PENDING = "is_pending";
-
-    private static final String CREATE_TABLE =
-            "CREATE TABLE " + TABLE + " (" +
-                    COL_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                    COL_TITLE + " TEXT NOT NULL, " +
-                    COL_BODY + " TEXT, " +
-                    COL_IMAGE + " TEXT, " +
-                    COL_TS + " INTEGER NOT NULL, " +
-                    COL_PENDING + " INTEGER NOT NULL DEFAULT 0);";
+    private static final int DB_VERSION = 7;
 
     private static DatabaseHelper instance;
 
     public static synchronized DatabaseHelper getInstance(Context ctx) {
-        if (instance == null) instance = new DatabaseHelper(ctx.getApplicationContext());
+        if (instance == null) {
+            instance = new DatabaseHelper(ctx.getApplicationContext());
+        }
         return instance;
     }
 
-    private DatabaseHelper(Context context) { super(context, DB_NAME, null, DB_VERSION); }
+    private DatabaseHelper(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+        Log.d(TAG, "DatabaseHelper created");
+    }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL(CREATE_TABLE);
+        Log.d(TAG, "Creating database table");
+        String createTable = "CREATE TABLE messages (" +
+                "_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "title TEXT NOT NULL, " +
+                "body TEXT, " +
+                "image_path TEXT, " +
+                "timestamp INTEGER, " +
+                "is_pending INTEGER DEFAULT 1)";
+        db.execSQL(createTable);
+        Log.d(TAG, "Table created");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE);
+        Log.d(TAG, "Upgrading database");
+        db.execSQL("DROP TABLE IF EXISTS messages");
         onCreate(db);
     }
 
-    public long insertMessage(String title, String body, String imagePath, boolean isPending) {
-        ContentValues cv = new ContentValues();
-        cv.put(COL_TITLE, title);
-        cv.put(COL_BODY, body);
-        cv.put(COL_IMAGE, imagePath);
-        cv.put(COL_TS, System.currentTimeMillis());
-        cv.put(COL_PENDING, isPending ? 1 : 0);
-        return getWritableDatabase().insert(TABLE, null, cv);
+    // Insert message
+    public long insertMessage(String title, String body, String imagePath, boolean isSynced) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("title", title);
+        values.put("body", body);
+        values.put("image_path", imagePath);
+        values.put("timestamp", System.currentTimeMillis());
+        values.put("is_pending", isSynced ? 0 : 1);
+
+        long id = db.insert("messages", null, values);
+        Log.d(TAG, "Inserted message: ID=" + id + ", Title=" + title);
+        return id;
     }
 
+    // Update message
+    public boolean updateMessage(long id, String title, String body, String imagePath) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("title", title);
+        values.put("body", body);
+        values.put("image_path", imagePath);
+        values.put("timestamp", System.currentTimeMillis());
+
+        int rowsAffected = db.update("messages", values, "_id=?", new String[]{String.valueOf(id)});
+        Log.d(TAG, "Updated message ID=" + id + ", rowsAffected=" + rowsAffected);
+        return rowsAffected > 0;
+    }
+
+    // Get all messages
     public List<Message> getAllMessages() {
-        List<Message> list = new ArrayList<>();
-        Cursor c = getReadableDatabase().query(TABLE, null, null, null, null, null, COL_TS + " DESC");
-        if (c != null) {
-            while (c.moveToNext()) list.add(fromCursor(c));
-            c.close();
+        List<Message> messages = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.query("messages", null, null, null, null, null, "timestamp DESC");
+
+        Log.d(TAG, "getAllMessages: cursor count=" + cursor.getCount());
+
+        while (cursor.moveToNext()) {
+            Message msg = new Message();
+            msg.id = cursor.getLong(cursor.getColumnIndexOrThrow("_id"));
+            msg.title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
+            msg.body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+            msg.imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+            msg.timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("timestamp"));
+            msg.isPending = cursor.getInt(cursor.getColumnIndexOrThrow("is_pending")) == 1;
+            messages.add(msg);
+            Log.d(TAG, "Loaded: ID=" + msg.id + ", Title=" + msg.title);
         }
-        return list;
+        cursor.close();
+
+        return messages;
     }
 
-    public List<Message> searchMessages(String query) {
-        List<Message> list = new ArrayList<>();
-        String likeQuery = "%" + query + "%";
-        Cursor c = getReadableDatabase().query(TABLE, null,
-                COL_TITLE + " LIKE ? OR " + COL_BODY + " LIKE ?",
-                new String[]{likeQuery, likeQuery}, null, null, COL_TS + " DESC");
-        if (c != null) {
-            while (c.moveToNext()) list.add(fromCursor(c));
-            c.close();
-        }
-        return list;
-    }
-
+    // Get message by ID
     public Message getMessageById(long id) {
-        Cursor c = getReadableDatabase().query(TABLE, null, COL_ID + "=?", new String[]{String.valueOf(id)}, null, null, null, "1");
-        Message m = null;
-        if (c != null && c.moveToFirst()) m = fromCursor(c);
-        if (c != null) c.close();
-        return m;
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query("messages", null, "_id=?", new String[]{String.valueOf(id)}, null, null, null);
+
+        Message msg = null;
+        if (cursor != null && cursor.moveToFirst()) {
+            msg = new Message();
+            msg.id = cursor.getLong(cursor.getColumnIndexOrThrow("_id"));
+            msg.title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
+            msg.body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+            msg.imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+            msg.timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("timestamp"));
+            msg.isPending = cursor.getInt(cursor.getColumnIndexOrThrow("is_pending")) == 1;
+            cursor.close();
+        }
+        return msg;
     }
 
-    public int updateMessage(long id, String title, String body, String imagePath) {
-        ContentValues cv = new ContentValues();
-        cv.put(COL_TITLE, title);
-        cv.put(COL_BODY, body);
-        cv.put(COL_IMAGE, imagePath);
-        cv.put(COL_TS, System.currentTimeMillis());
-        return getWritableDatabase().update(TABLE, cv, COL_ID + "=?", new String[]{String.valueOf(id)});
-    }
-
-    // --- ADDED THIS TO FIX THE ERROR ---
+    // Delete single message - THIS IS THE MISSING METHOD
     public void deleteMessage(long id) {
-        getWritableDatabase().delete(TABLE, COL_ID + "=?", new String[]{String.valueOf(id)});
+        SQLiteDatabase db = getWritableDatabase();
+        int deleted = db.delete("messages", "_id=?", new String[]{String.valueOf(id)});
+        Log.d(TAG, "Deleted message ID=" + id + ", rows deleted=" + deleted);
     }
 
-    // --- KEPT YOUR BULK DELETE EXACTLY THE SAME ---
+    // Delete multiple messages
     public void deleteMessages(List<Long> ids) {
         SQLiteDatabase db = getWritableDatabase();
-        db.beginTransaction();
-        try {
-            for (long id : ids) {
-                db.delete(TABLE, COL_ID + "=?", new String[]{String.valueOf(id)});
-            }
-            db.setTransactionSuccessful();
-        } finally {
-            db.endTransaction();
+        for (long id : ids) {
+            db.delete("messages", "_id=?", new String[]{String.valueOf(id)});
+            Log.d(TAG, "Deleted message ID=" + id);
         }
     }
 
-    private Message fromCursor(Cursor c) {
-        Message m = new Message();
-        m.id = c.getLong(c.getColumnIndexOrThrow(COL_ID));
-        m.title = c.getString(c.getColumnIndexOrThrow(COL_TITLE));
-        m.body = c.getString(c.getColumnIndexOrThrow(COL_BODY));
-        m.imagePath = c.getString(c.getColumnIndexOrThrow(COL_IMAGE));
-        m.timestamp = c.getLong(c.getColumnIndexOrThrow(COL_TS));
-        m.isPending = c.getInt(c.getColumnIndexOrThrow(COL_PENDING)) == 1;
-        return m;
+    // Get pending messages
+    public List<Message> getPendingMessages() {
+        List<Message> messages = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.query("messages", null, "is_pending=1", null, null, null, "timestamp ASC");
+
+        while (cursor.moveToNext()) {
+            Message msg = new Message();
+            msg.id = cursor.getLong(cursor.getColumnIndexOrThrow("_id"));
+            msg.title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
+            msg.body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+            msg.imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+            msg.timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("timestamp"));
+            msg.isPending = true;
+            messages.add(msg);
+        }
+        cursor.close();
+        return messages;
     }
 
-    public void clearAll() { getWritableDatabase().delete(TABLE, null, null); }
-    public int getPendingCount() { return 0; }
+    // Get pending count
+    public int getPendingCount() {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM messages WHERE is_pending=1", null);
+        int count = 0;
+        if (cursor.moveToFirst()) {
+            count = cursor.getInt(0);
+        }
+        cursor.close();
+        return count;
+    }
+
+    // Update sync status
+    public void updateSyncStatus(long id, int status) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("is_pending", status);
+        db.update("messages", values, "_id=?", new String[]{String.valueOf(id)});
+        Log.d(TAG, "Updated sync status for ID=" + id + " to " + status);
+    }
+
+    // Search messages by title or body
+    public List<Message> searchMessages(String query) {
+        List<Message> messages = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+
+        String likeQuery = "%" + query + "%";
+        Cursor cursor = db.query(
+                "messages",
+                null,
+                "title LIKE ? OR body LIKE ?",
+                new String[]{likeQuery, likeQuery},
+                null,
+                null,
+                "timestamp DESC"
+        );
+
+        while (cursor.moveToNext()) {
+            Message msg = new Message();
+            msg.id = cursor.getLong(cursor.getColumnIndexOrThrow("_id"));
+            msg.title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
+            msg.body = cursor.getString(cursor.getColumnIndexOrThrow("body"));
+            msg.imagePath = cursor.getString(cursor.getColumnIndexOrThrow("image_path"));
+            msg.timestamp = cursor.getLong(cursor.getColumnIndexOrThrow("timestamp"));
+            msg.isPending = cursor.getInt(cursor.getColumnIndexOrThrow("is_pending")) == 1;
+            messages.add(msg);
+        }
+        cursor.close();
+
+        return messages;
+    }
+    // Clear all
+    public void clearAll() {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete("messages", null, null);
+        Log.d(TAG, "Cleared all messages");
+    }
 }

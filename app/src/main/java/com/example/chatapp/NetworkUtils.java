@@ -4,16 +4,13 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
+import android.net.NetworkInfo;
 import android.os.Build;
 
-/**
- * Utility class to check network / online status.
- */
 public class NetworkUtils {
 
     private NetworkUtils() {}
 
-    /** Returns true if the device currently has an active internet connection. */
     public static boolean isOnline(Context context) {
         ConnectivityManager cm = (ConnectivityManager)
                 context.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -23,13 +20,9 @@ public class NetworkUtils {
             Network network = cm.getActiveNetwork();
             if (network == null) return false;
             NetworkCapabilities caps = cm.getNetworkCapabilities(network);
-            return caps != null &&
-                    (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
-                  || caps.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR)
-                  || caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
+            return caps != null && caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
         } else {
-            // Legacy path (API < 23)
-            android.net.NetworkInfo info = cm.getActiveNetworkInfo();
+            NetworkInfo info = cm.getActiveNetworkInfo();
             return info != null && info.isConnected();
         }
     }

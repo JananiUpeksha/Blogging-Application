@@ -43,7 +43,7 @@ public class CreateEditFragment extends Fragment {
                     result -> {
                         if (result.getResultCode() == Activity.RESULT_OK) {
                             currentImageUri = cameraFileUri;
-                            // Previews are now handled by the logic you need
+                            previewImage();
                             Toast.makeText(requireContext(), "Image captured", Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -55,6 +55,7 @@ public class CreateEditFragment extends Fragment {
                             Uri uri = result.getData().getData();
                             currentImageUri = uri;
                             currentImagePath = null;
+                            previewImage();
                         }
                     });
 
@@ -87,8 +88,15 @@ public class CreateEditFragment extends Fragment {
         updateTitle();
     }
 
+    private void previewImage() {
+        if (currentImageUri != null) {
+            // If you have an ImageView in your layout to show preview
+            // binding.ivPreview.setVisibility(View.VISIBLE);
+            // Glide.with(this).load(currentImageUri).into(binding.ivPreview);
+        }
+    }
+
     private void updateTitle() {
-        // Matches the ID tvScreenTitle from your new XML
         binding.tvScreenTitle.setText(editMessageId != -1 ? "Edit Post" : "Create New Post");
     }
 
@@ -98,6 +106,7 @@ public class CreateEditFragment extends Fragment {
         binding.etContent.setText(existingMessage.body);
         if (existingMessage.imagePath != null && !existingMessage.imagePath.isEmpty()) {
             currentImageUri = Uri.parse(existingMessage.imagePath);
+            previewImage();
         }
     }
 
@@ -140,26 +149,56 @@ public class CreateEditFragment extends Fragment {
         galleryLauncher.launch(intent);
     }
 
+    // SINGLE saveMessage() method - REMOVED THE DUPLICATE
     private void saveMessage() {
         String title = binding.etTitle.getText().toString().trim();
         String content = binding.etContent.getText().toString().trim();
 
+        // Validate fields
         if (title.isEmpty()) {
             binding.etTitle.setError("Title is required");
             return;
         }
 
-        String imageStr = (currentImageUri != null) ? currentImageUri.toString() : currentImagePath;
+        if (content.isEmpty()) {
+            binding.etContent.setError("Content is required");
+            return;
+        }
+
+        String imageStr = (currentImageUri != null) ? currentImageUri.toString() : null;
 
         if (editMessageId != -1) {
-            db.updateMessage(editMessageId, title, content, imageStr);
-            Toast.makeText(requireContext(), "Post updated", Toast.LENGTH_SHORT).show();
+            // Update existing message
+            boolean updated = db.updateMessage(editMessageId, title, content, imageStr);
+            if (updated) {
+                Toast.makeText(requireContext(), "Post updated successfully", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(requireContext(), "Error updating post", Toast.LENGTH_SHORT).show();
+                return;
+            }
         } else {
-            db.insertMessage(title, content, imageStr, false);
-            Toast.makeText(requireContext(), "Post created", Toast.LENGTH_SHORT).show();
+            // Insert new message
+            long id = db.insertMessage(title, content, imageStr, false);
+            if (id != -1) {
+                Toast.makeText(requireContext(), "Post created successfully", Toast.LENGTH_SHORT).show();
+
+                // Show offline warning if needed
+                if (!NetworkUtils.isOnline(requireContext())) {
+                    Toast.makeText(requireContext(), "⚠️ Offline mode - Share when online", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                Toast.makeText(requireContext(), "Error creating post", Toast.LENGTH_SHORT).show();
+                return;
+            }
         }
+
+        // Navigate back
         NavHostFragment.findNavController(this).popBackStack();
     }
 
-    @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }

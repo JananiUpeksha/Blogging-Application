@@ -38,21 +38,18 @@ public class HomeFragment extends Fragment {
 
     private void setupRecyclerView() {
         adapter = new MessageAdapter(
-                msg -> {
+                message -> {
                     Bundle args = new Bundle();
-                    args.putLong("messageId", msg.id);
+                    args.putLong("messageId", message.id);
                     NavHostFragment.findNavController(this).navigate(R.id.action_home_to_messageView, args);
                 },
                 selectedCount -> {
-                    // Handled by IDs in fragment_home.xml
                     if (selectedCount > 0) {
                         binding.selectionHeader.setVisibility(View.VISIBLE);
-                        binding.normalHeader.setVisibility(View.GONE);
                         binding.tvSelectionCount.setText(selectedCount + " selected");
                         binding.fabNewMessage.setVisibility(View.GONE);
                     } else {
                         binding.selectionHeader.setVisibility(View.GONE);
-                        binding.normalHeader.setVisibility(View.VISIBLE);
                         binding.fabNewMessage.setVisibility(View.VISIBLE);
                     }
                 }
@@ -82,12 +79,12 @@ public class HomeFragment extends Fragment {
 
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete posts?")
-                .setMessage("Are you sure you want to delete these " + ids.size() + " items?")
+                .setMessage("Delete " + ids.size() + " items?")
                 .setPositiveButton("Delete", (d, w) -> {
                     db.deleteMessages(ids);
                     adapter.clearSelection();
                     loadMessages();
-                    Toast.makeText(requireContext(), ids.size() + " posts deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireContext(), ids.size() + " deleted", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -95,12 +92,32 @@ public class HomeFragment extends Fragment {
 
     private void loadMessages() {
         List<Message> messages = db.getAllMessages();
+
+        // Debug toast
+        if (messages != null) {
+            Toast.makeText(requireContext(), "Found " + messages.size() + " posts", Toast.LENGTH_SHORT).show();
+        }
+
         adapter.submitList(messages);
-        // Standardized ID from fragment_home.xml update
-        binding.tvEmptyState.setVisibility(messages.isEmpty() ? View.VISIBLE : View.GONE);
-        binding.recyclerMessages.setVisibility(messages.isEmpty() ? View.GONE : View.VISIBLE);
+
+        if (messages == null || messages.isEmpty()) {
+            binding.tvEmptyState.setVisibility(View.VISIBLE);
+            binding.recyclerMessages.setVisibility(View.GONE);
+        } else {
+            binding.tvEmptyState.setVisibility(View.GONE);
+            binding.recyclerMessages.setVisibility(View.VISIBLE);
+        }
     }
 
-    @Override public void onResume() { super.onResume(); loadMessages(); }
-    @Override public void onDestroyView() { super.onDestroyView(); binding = null; }
+    @Override
+    public void onResume() {
+        super.onResume();
+        loadMessages();
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
 }
