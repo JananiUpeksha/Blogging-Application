@@ -1,11 +1,13 @@
 package com.example.chatapp;
 
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -93,13 +95,17 @@ public class SearchFragment extends Fragment {
         if (query.isEmpty()) {
             results = db.getAllMessages();
         } else {
-            // This call is now supported by the updated DatabaseHelper
             results = db.searchMessages(query);
         }
         results = applyFilter(results);
         adapter.submitList(results);
+
         int count = results.size();
-        binding.tvResultCount.setText(count + " result" + (count == 1 ? "" : "s") + " found");
+        // FIX: Ensuring tvResultCount is updated correctly
+        if (binding.tvResultCount != null) {
+            binding.tvResultCount.setText(getString(R.string.results_found, count));
+        }
+
         binding.emptyState.setVisibility(count == 0 && !query.isEmpty() ? View.VISIBLE : View.GONE);
         binding.recyclerResults.setVisibility(count == 0 && !query.isEmpty() ? View.GONE : View.VISIBLE);
     }
@@ -114,15 +120,17 @@ public class SearchFragment extends Fragment {
     }
 
     private void updateChipSelection() {
-        int colorActive   = requireContext().getColor(R.color.purple_primary);
-        int colorInactive = requireContext().getColor(R.color.chip_inactive_bg);
+        int colorActive   = requireContext().getColor(R.color.action_blue);
+        int colorInactive = requireContext().getColor(R.color.bg_main);
         int textActive    = requireContext().getColor(android.R.color.white);
-        int textInactive  = requireContext().getColor(R.color.text_secondary);
-        android.widget.TextView[] views = {binding.chipAll, binding.chipWithImages, binding.chipRecent, binding.chipOldest};
+        int textInactive  = requireContext().getColor(R.color.text_muted);
+
+        TextView[] views = {binding.chipAll, binding.chipWithImages, binding.chipRecent, binding.chipOldest};
         int[] filters = {FILTER_ALL, FILTER_WITH_IMAGES, FILTER_RECENT, FILTER_OLDEST};
+
         for (int i = 0; i < views.length; i++) {
             boolean active = (currentFilter == filters[i]);
-            views[i].setBackgroundColor(active ? colorActive : colorInactive);
+            views[i].setBackgroundTintList(ColorStateList.valueOf(active ? colorActive : colorInactive));
             views[i].setTextColor(active ? textActive : textInactive);
         }
     }

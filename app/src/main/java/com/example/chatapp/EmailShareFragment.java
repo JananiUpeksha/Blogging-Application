@@ -80,10 +80,12 @@ public class EmailShareFragment extends Fragment {
 
         binding.btnSend.setOnClickListener(v -> sendEmail());
 
-        // Quick-send buttons in bottom sheet style
+        // Quick-send buttons available in your new XML
         binding.btnGmail.setOnClickListener(v   -> sendEmailWithPackage("com.google.android.gm"));
         binding.btnOutlook.setOnClickListener(v -> sendEmailWithPackage("com.microsoft.office.outlook"));
-        binding.btnYahoo.setOnClickListener(v   -> sendEmailWithPackage("com.yahoo.mobile.client.android.mail"));
+
+        // btnYahoo was removed from fragment_email_share.xml, so we remove it here too
+
         binding.btnOthers.setOnClickListener(v  -> sendEmail()); // generic chooser
     }
 

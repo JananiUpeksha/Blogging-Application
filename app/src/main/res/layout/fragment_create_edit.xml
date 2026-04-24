@@ -6,18 +6,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/background_light">
+    android:background="@color/bg_main">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="64dp"
         android:orientation="horizontal"
-        android:paddingHorizontal="4dp"
-        android:paddingVertical="8dp"
-        android:background="@color/purple_light"
+        android:paddingHorizontal="8dp"
+        android:background="@color/surface_card"
         android:gravity="center_vertical"
-        android:elevation="4dp"
-        android:baselineAligned="false">
+        android:elevation="2dp">
 
         <ImageButton
             android:id="@+id/btnBack"
@@ -25,18 +23,18 @@
             android:layout_height="48dp"
             android:src="@drawable/ic_arrow_back"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/text_primary"
-            android:contentDescription="Go Back" />
+            app:tint="@color/text_main"
+            android:contentDescription="@string/content_desc_back" />
 
         <TextView
             android:id="@+id/tvScreenTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Create New Post"
+            android:text="@string/title_create_post"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/text_main"
             android:gravity="center" />
 
         <ImageButton
@@ -45,37 +43,8 @@
             android:layout_height="48dp"
             android:src="@drawable/ic_check"
             android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/purple_primary"
-            android:contentDescription="Save Post" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/offlineBanner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#424242"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="10dp"
-        android:gravity="center_vertical"
-        android:visibility="gone">
-
-        <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:src="@drawable/ic_cloud_off"
-            app:tint="@android:color/white"
-            android:contentDescription="" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Offline Mode – saved locally"
-            android:textColor="@android:color/white"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:paddingStart="8dp"
-            tools:ignore="RtlSymmetry" />
+            app:tint="@color/action_blue"
+            android:contentDescription="@string/content_desc_save" />
     </LinearLayout>
 
     <ScrollView
@@ -88,178 +57,112 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="20dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Title"
-                android:textSize="14sp"
+                android:text="Post Title"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/purple_primary"
-                android:layout_marginBottom="4dp" />
+                android:textColor="@color/text_muted"
+                android:layout_marginBottom="8dp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="@color/action_blue"
                 app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusBottomEnd="12dp"
-                app:boxStrokeColor="@color/purple_primary"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="20dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etTitle"
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:hint="Enter title…"
+                    android:layout_height="wrap_content"
+                    android:hint="Give your post a name..."
                     android:inputType="textCapSentences"
-                    android:textSize="15sp"
-                    android:background="@android:color/transparent"
-                    android:importantForAutofill="no" />
+                    android:textColor="@color/text_main" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Content"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:textColor="@color/purple_primary"
-                android:layout_marginBottom="4dp" />
+                android:textColor="@color/text_muted"
+                android:layout_marginBottom="8dp" />
 
-            <FrameLayout
+            <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp">
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="@color/action_blue"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                android:layout_marginBottom="20dp">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContent"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    app:boxCornerRadiusTopStart="12dp"
-                    app:boxCornerRadiusTopEnd="12dp"
-                    app:boxCornerRadiusBottomStart="12dp"
-                    app:boxCornerRadiusBottomEnd="12dp"
-                    app:boxStrokeColor="@color/purple_primary">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etContent"
-                        android:layout_width="match_parent"
-                        android:layout_height="160dp"
-                        android:hint="What's on your mind?"
-                        android:inputType="textCapSentences|textMultiLine"
-                        android:gravity="top"
-                        android:textSize="15sp"
-                        android:paddingBottom="32dp"
-                        android:background="@android:color/transparent"
-                        android:importantForAutofill="no" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <TextView
-                    android:id="@+id/tvCharCounter"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="bottom|end"
-                    android:layout_margin="12dp"
-                    android:text="0 / 500"
-                    android:textSize="12sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/text_secondary" />
-            </FrameLayout>
+                    android:layout_height="180dp"
+                    android:gravity="top"
+                    android:hint="What's on your mind?"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:textColor="@color/text_main" />
+            </com.google.android.material.textfield.TextInputLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="24dp">
 
                 <Button
                     android:id="@+id/btnCamera"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="56dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
                     android:text="Camera"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:drawableStart="@drawable/ic_camera"
-                    app:drawableTint="@color/text_primary"
-                    android:drawablePadding="8dp"
-                    android:backgroundTint="@color/chip_inactive_bg"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/text_main"
+                    android:backgroundTint="@color/border_line"
+                    app:icon="@drawable/ic_camera"
+                    app:iconTint="@color/text_main"
                     app:cornerRadius="12dp"
                     style="@style/Widget.MaterialComponents.Button.UnelevatedButton"/>
 
                 <Button
                     android:id="@+id/btnGallery"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="56dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
                     android:text="Gallery"
-                    android:textSize="14sp"
-                    android:textStyle="bold"
-                    android:drawableStart="@drawable/ic_image"
-                    app:drawableTint="@color/text_primary"
-                    android:drawablePadding="8dp"
-                    android:backgroundTint="@color/chip_inactive_bg"
-                    android:textColor="@color/text_primary"
+                    android:textColor="@color/text_main"
+                    android:backgroundTint="@color/border_line"
+                    app:icon="@drawable/ic_image"
+                    app:iconTint="@color/text_main"
                     app:cornerRadius="12dp"
                     style="@style/Widget.MaterialComponents.Button.UnelevatedButton"/>
             </LinearLayout>
 
-            <androidx.cardview.widget.CardView
-                android:id="@+id/imagePreviewCard"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="2dp"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp">
-
-                    <ImageView
-                        android:id="@+id/ivPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop"
-                        android:contentDescription="Selected image preview" />
-
-                    <ImageButton
-                        android:id="@+id/btnRemoveImage"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:layout_gravity="top|end"
-                        android:layout_margin="8dp"
-                        android:src="@drawable/ic_close"
-                        app:tint="@android:color/white"
-                        android:background="@drawable/bg_remove_btn"
-                        android:contentDescription="Remove image" />
-                </FrameLayout>
-            </androidx.cardview.widget.CardView>
-
             <Button
                 android:id="@+id/btnSaveBottom"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:text="Save to Database"
-                android:textSize="16sp"
+                android:layout_height="56dp"
+                android:text="Publish Post"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/action_blue"
                 android:textStyle="bold"
-                android:textColor="@android:color/white"
-                android:backgroundTint="@color/purple_accent"
-                android:drawableStart="@drawable/ic_database"
-                app:drawableTint="@android:color/white"
-                android:drawablePadding="8dp"
-                app:cornerRadius="12dp"
-                android:layout_marginBottom="16dp" />
+                app:cornerRadius="16dp" />
 
         </LinearLayout>
     </ScrollView>
-
 </LinearLayout>

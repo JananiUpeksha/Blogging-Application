@@ -49,7 +49,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // CREATE
     public long insertMessage(String title, String body, String imagePath, boolean isPending) {
         ContentValues cv = new ContentValues();
         cv.put(COL_TITLE, title);
@@ -60,7 +59,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return getWritableDatabase().insert(TABLE, null, cv);
     }
 
-    // READ ALL
     public List<Message> getAllMessages() {
         List<Message> list = new ArrayList<>();
         Cursor c = getReadableDatabase().query(TABLE, null, null, null, null, null, COL_TS + " DESC");
@@ -71,19 +69,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    // FIXED: Added missing Search Method
     public List<Message> searchMessages(String query) {
         List<Message> list = new ArrayList<>();
         String likeQuery = "%" + query + "%";
-
-        // Search in both Title and Body columns
-        Cursor c = getReadableDatabase().query(
-                TABLE,
-                null,
+        Cursor c = getReadableDatabase().query(TABLE, null,
                 COL_TITLE + " LIKE ? OR " + COL_BODY + " LIKE ?",
-                new String[]{likeQuery, likeQuery},
-                null, null, COL_TS + " DESC");
-
+                new String[]{likeQuery, likeQuery}, null, null, COL_TS + " DESC");
         if (c != null) {
             while (c.moveToNext()) list.add(fromCursor(c));
             c.close();
@@ -99,7 +90,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return m;
     }
 
-    // UPDATE
     public int updateMessage(long id, String title, String body, String imagePath) {
         ContentValues cv = new ContentValues();
         cv.put(COL_TITLE, title);
@@ -109,11 +99,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return getWritableDatabase().update(TABLE, cv, COL_ID + "=?", new String[]{String.valueOf(id)});
     }
 
-    // DELETE
+    // --- ADDED THIS TO FIX THE ERROR ---
     public void deleteMessage(long id) {
         getWritableDatabase().delete(TABLE, COL_ID + "=?", new String[]{String.valueOf(id)});
     }
 
+    // --- KEPT YOUR BULK DELETE EXACTLY THE SAME ---
     public void deleteMessages(List<Long> ids) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();

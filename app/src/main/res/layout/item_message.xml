@@ -1,98 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="16dp"
-    app:cardCornerRadius="0dp"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="24dp"
     app:cardElevation="2dp"
-    app:cardBackgroundColor="@android:color/white">
+    app:strokeWidth="2dp"
+    app:strokeColor="#CBD5E1"> <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="380dp">
+
+    <ImageView
+        android:id="@+id/ivPostImage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        tools:src="@tools:sample/backgrounds/scenic" />
+
+    <CheckBox
+        android:id="@+id/cbSelect"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="16dp"
+        android:buttonTint="@color/white"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <CheckBox
+        android:id="@+id/btnLike"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:button="@drawable/sl_heart_reaction"
+        android:background="@drawable/bg_circle_white_blur"
+        android:buttonTint="@color/brand_pink"
+        android:padding="10dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/bg_gradient_overlay" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_alignParentBottom="true"
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#CBD5E1"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp"
+            tools:text="2 hours ago" />
+
+        <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="DraftSpace Story" />
 
-            <CheckBox
-                android:id="@+id/cbSelect"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:layout_marginEnd="8dp"
-                android:visibility="gone"
-                android:buttonTint="@color/purple_primary" />
-
-            <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_account_circle"
-                app:tint="@color/purple_light_deep"
-                android:contentDescription="User Avatar" />
-
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:paddingStart="10dp"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/text_primary"
-                tools:text="TalkPal User" />
-
-            <TextView
-                android:id="@+id/tvTimestamp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary"
-                tools:text="2 hours ago" />
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/ivPostImage"
-            android:layout_width="match_parent"
-            android:layout_height="380dp"
-            android:scaleType="centerCrop"
-            android:background="#F5F5F5"
-            android:visibility="gone"
-            android:contentDescription="Post content" />
-
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvPreview"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="12dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/tvPreview"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textSize="14sp"
-                android:textColor="@color/text_primary"
-                android:lineSpacingExtra="2dp"
-                android:maxLines="3"
-                android:ellipsize="end"
-                tools:text="This is the caption or preview content for the blog post..." />
-
-            <TextView
-                android:id="@+id/tvPendingBadge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="PENDING SYNC"
-                android:textSize="10sp"
-                android:textStyle="bold"
-                android:textColor="@color/purple_primary"
-                android:visibility="gone"
-                android:layout_marginTop="6dp" />
-        </LinearLayout>
+            android:textColor="#E2E8F0"
+            android:textSize="14sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginTop="4dp"
+            tools:text="Preview of the blog content goes here..." />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</RelativeLayout>
+</com.google.android.material.card.MaterialCardView>

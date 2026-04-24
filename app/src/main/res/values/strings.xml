@@ -1,6 +1,27 @@
 <resources>
-    <string name="app_name">Talk Pal</string>
-    <string name="first_fragment_label">Home</string>
-    <string name="second_fragment_label">Message</string>
+    <string name="app_name">DraftSpace</string>
+    <string name="title_home">DraftSpace</string>
+    <string name="title_draftspace">DraftSpace</string>
+    <string name="tagline_blog">EVERY STORY MATTERS</string>
+
+    <string name="content_desc_search">Search messages</string>
+    <string name="content_desc_settings">Open settings</string>
+    <string name="content_desc_new_message">Create new message</string>
+    <string name="desc_back">Back</string>
+    <string name="search_hint">Search messages…</string>
+    <string name="results_found">%1$d results found</string>
+    <string name="no_matches">No matches found</string>
+    <string name="btn_clear_search">Clear Search</string>
+    <string name="desc_clear_text">Clear search</string>
+    <string name="desc_voice_search">Voice search</string>
+    <string name="chip_all">All</string>
+    <string name="chip_images">With Images</string>
+    <string name="chip_recent">Recent</string>
+    <string name="chip_oldest">Oldest</string>
+    <string name="title_create_post">Create New Post</string>
+    <string name="content_desc_back">Navigate back</string>
+    <string name="content_desc_save">Save post</string>
     <string name="action_settings">Settings</string>
+
+
 </resources>

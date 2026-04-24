@@ -1,19 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <style name="Theme.ChatApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/purple_primary</item>
-        <item name="colorPrimaryVariant">@color/purple_light_deep</item>
+    <style name="Base.Theme.ChatApp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/action_blue</item>
+        <item name="colorPrimaryVariant">@color/action_blue</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/orange_primary</item>
+
+        <item name="colorSecondary">@color/brand_pink</item>
+        <item name="colorSecondaryVariant">@color/brand_pink</item>
         <item name="colorOnSecondary">@color/white</item>
-        <item name="android:statusBarColor" tools:targetApi="l">@color/purple_light</item>
+
+        <item name="android:statusBarColor">@color/surface_card</item>
         <item name="android:windowLightStatusBar" tools:targetApi="m">true</item>
+
+        <item name="android:windowBackground">@color/bg_main</item>
     </style>
 
+    <style name="Theme.ChatApp" parent="Base.Theme.ChatApp" />
+
     <style name="Theme.ChatApp.Splash" parent="Theme.ChatApp">
-        <item name="android:windowBackground">@drawable/bg_splash_gradient</item>
-        <item name="android:statusBarColor">@color/purple_light</item>
+        <item name="android:windowBackground">@drawable/bg_splash_disney</item>
+        <item name="android:statusBarColor">#020617</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 
 </resources>
