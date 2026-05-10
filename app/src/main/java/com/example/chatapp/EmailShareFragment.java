@@ -2,7 +2,10 @@ package com.example.chatapp;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,14 +13,15 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.fragment.NavHostFragment;
 import com.example.chatapp.databinding.FragmentEmailShareBinding;
+import java.io.File;
 
 public class EmailShareFragment extends Fragment {
 
     private FragmentEmailShareBinding binding;
-    private DatabaseHelper db;
     private Message message;
 
     @Override
@@ -29,7 +33,7 @@ public class EmailShareFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        db = DatabaseHelper.getInstance(requireContext());
+        DatabaseHelper db = DatabaseHelper.getInstance(requireContext());
 
         long messageId = -1;
         if (getArguments() != null) {
@@ -46,18 +50,25 @@ public class EmailShareFragment extends Fragment {
 
     private void prefillFields() {
         if (message == null) return;
-        // Changed from "Talk Pal" to "DraftSpace"
-        binding.etSubject.setText("DraftSpace: " + message.title);
+
+        String subjectText = getString(R.string.email_subject_prefix, message.title);
+        binding.etSubject.setText(subjectText);
+
         String preview = message.body != null
                 ? message.body.substring(0, Math.min(message.body.length(), 150))
                 : "";
         binding.tvMessagePreview.setText(preview);
         binding.tvMessageTitle.setText(message.title);
 
-        String sizeInfo = (message.imagePath != null && !message.imagePath.isEmpty())
-                ? "Has photo attached"
-                : "Text only";
-        binding.tvAttachmentInfo.setText(sizeInfo);
+        // Check if image actually exists
+        boolean hasImage = false;
+        if (message.imagePath != null && !message.imagePath.isEmpty()) {
+            File imageFile = new File(message.imagePath);
+            hasImage = imageFile.exists();
+        }
+
+        String attachmentInfo = hasImage ? getString(R.string.has_photo) : getString(R.string.text_only);
+        binding.tvAttachmentInfo.setText(attachmentInfo);
     }
 
     private void setupClickListeners() {
@@ -72,7 +83,6 @@ public class EmailShareFragment extends Fragment {
 
     private void checkNetworkAndUpdateUI() {
         if (!NetworkUtils.isOnline(requireContext())) {
-            // Disable all email buttons
             binding.btnSend.setEnabled(false);
             binding.btnGmail.setEnabled(false);
             binding.btnOutlook.setEnabled(false);
@@ -84,7 +94,7 @@ public class EmailShareFragment extends Fragment {
             binding.btnOthers.setAlpha(0.5f);
 
             Toast.makeText(requireContext(),
-                    "📡 You are offline. Please connect to internet to send emails.",
+                    R.string.offline_message,
                     Toast.LENGTH_LONG).show();
         } else {
             binding.btnSend.setEnabled(true);
@@ -117,15 +127,77 @@ public class EmailShareFragment extends Fragment {
 
     private void showNoInternetDialog() {
         new AlertDialog.Builder(requireContext())
-                .setTitle("📡 No Internet Connection")
-                .setMessage("Cannot send emails without internet.\n\n" +
-                        "Please connect to WiFi or mobile data and try again.")
-                .setPositiveButton("Open WiFi Settings", (d, w) -> {
+                .setTitle(R.string.no_internet_title)
+                .setMessage(R.string.no_internet_message)
+                .setPositiveButton(R.string.open_wifi_settings, (d, w) -> {
                     startActivity(new Intent(android.provider.Settings.ACTION_WIFI_SETTINGS));
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(R.string.cancel, null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+    }
+
+    private Uri getImageUri() {
+        if (message == null || message.imagePath == null || message.imagePath.isEmpty()) {
+            return null;
+        }
+
+        try {
+            File imageFile = new File(message.imagePath);
+
+            // Log the path for debugging
+            Log.d("EmailShare", "Image path: " + message.imagePath);
+            Log.d("EmailShare", "File exists: " + imageFile.exists());
+            Log.d("EmailShare", "File absolute path: " + imageFile.getAbsolutePath());
+
+            if (!imageFile.exists()) {
+                // Try alternative paths
+                String fileName = new File(message.imagePath).getName();
+
+                // Try Pictures directory
+                File picsDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                if (picsDir != null) {
+                    File altFile = new File(picsDir, fileName);
+                    if (altFile.exists()) {
+                        imageFile = altFile;
+                        Log.d("EmailShare", "Found image in Pictures dir: " + altFile.getAbsolutePath());
+                    }
+                }
+
+                // Try DCIM directory
+                if (!imageFile.exists()) {
+                    File dcimDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                    File altFile = new File(dcimDir, fileName);
+                    if (altFile.exists()) {
+                        imageFile = altFile;
+                        Log.d("EmailShare", "Found image in DCIM dir: " + altFile.getAbsolutePath());
+                    }
+                }
+
+                if (!imageFile.exists()) {
+                    String fileNameOnly = fileName;
+                    Toast.makeText(requireContext(),
+                            getString(R.string.image_not_found, fileNameOnly),
+                            Toast.LENGTH_LONG).show();
+                    return null;
+                }
+            }
+
+            // Create URI using FileProvider for Android 7.0+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                return FileProvider.getUriForFile(requireContext(),
+                        requireContext().getPackageName() + ".fileprovider",
+                        imageFile);
+            } else {
+                return Uri.fromFile(imageFile);
+            }
+        } catch (Exception e) {
+            Log.e("EmailShare", "Error getting image URI", e);
+            Toast.makeText(requireContext(),
+                    getString(R.string.error_accessing_image, e.getMessage()),
+                    Toast.LENGTH_SHORT).show();
+            return null;
+        }
     }
 
     private void sendEmail() {
@@ -133,26 +205,29 @@ public class EmailShareFragment extends Fragment {
         String subject = binding.etSubject.getText().toString().trim();
         String body = buildEmailBody();
 
-        if (message != null && message.imagePath != null && !message.imagePath.isEmpty()) {
-            Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("message/rfc822");
-            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
-            intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            intent.putExtra(Intent.EXTRA_TEXT, body);
-            intent.putExtra(Intent.EXTRA_STREAM, Uri.parse(message.imagePath));
+        if (to.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.enter_recipient, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
+        intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+
+        // Handle image attachment
+        Uri imageUri = getImageUri();
+        if (imageUri != null) {
+            intent.putExtra(Intent.EXTRA_STREAM, imageUri);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            startActivity(Intent.createChooser(intent, "Send via"));
-        } else {
-            Intent intent = new Intent(Intent.ACTION_SENDTO);
-            intent.setData(Uri.parse("mailto:"));
-            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
-            intent.putExtra(Intent.EXTRA_SUBJECT, subject);
-            intent.putExtra(Intent.EXTRA_TEXT, body);
-            try {
-                startActivity(Intent.createChooser(intent, "Send email"));
-            } catch (android.content.ActivityNotFoundException e) {
-                Toast.makeText(requireContext(), "No email app found", Toast.LENGTH_SHORT).show();
-            }
+            Toast.makeText(requireContext(), R.string.image_attached, Toast.LENGTH_SHORT).show();
+        }
+
+        try {
+            startActivity(Intent.createChooser(intent, getString(R.string.send_email_via)));
+        } catch (android.content.ActivityNotFoundException e) {
+            Toast.makeText(requireContext(), R.string.no_email_app, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -161,28 +236,43 @@ public class EmailShareFragment extends Fragment {
         String subject = binding.etSubject.getText().toString().trim();
         String body = buildEmailBody();
 
-        Intent intent = new Intent(Intent.ACTION_SENDTO);
-        intent.setData(Uri.parse("mailto:"));
+        if (to.isEmpty()) {
+            Toast.makeText(requireContext(), R.string.enter_recipient, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("message/rfc822");
         intent.setPackage(packageName);
         intent.putExtra(Intent.EXTRA_EMAIL, new String[]{to});
         intent.putExtra(Intent.EXTRA_SUBJECT, subject);
         intent.putExtra(Intent.EXTRA_TEXT, body);
 
+        // Handle image attachment
+        Uri imageUri = getImageUri();
+        if (imageUri != null) {
+            intent.putExtra(Intent.EXTRA_STREAM, imageUri);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        }
+
         try {
             startActivity(intent);
         } catch (android.content.ActivityNotFoundException e) {
-            Toast.makeText(requireContext(), "App not installed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(requireContext(), R.string.app_not_installed, Toast.LENGTH_SHORT).show();
         }
     }
 
     private String buildEmailBody() {
         StringBuilder sb = new StringBuilder();
         if (message != null) {
-            sb.append(message.title).append("\n\n");
-            if (message.body != null) sb.append(message.body).append("\n\n");
+            if (message.title != null && !message.title.isEmpty()) {
+                sb.append("📄 ").append(message.title).append("\n\n");
+            }
+            if (message.body != null && !message.body.isEmpty()) {
+                sb.append(message.body).append("\n\n");
+            }
         }
-        // Changed from "Talk Pal" to "DraftSpace"
-        sb.append("— Shared from DraftSpace");
+        sb.append(getString(R.string.shared_from_draftspace));
         return sb.toString();
     }
 

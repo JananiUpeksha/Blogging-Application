@@ -22,6 +22,23 @@
     <string name="content_desc_back">Navigate back</string>
     <string name="content_desc_save">Save post</string>
     <string name="action_settings">Settings</string>
+    <string name="email_subject_prefix">DraftSpace: %s</string>
+    <string name="has_photo">📷 Has photo attached</string>
+    <string name="text_only">📝 Text only</string>
+    <string name="offline_message">📡 You are offline. Please connect to internet to send emails.</string>
+    <string name="no_internet_title">📡 No Internet Connection</string>
+    <string name="no_internet_message">Cannot send emails without internet.\n\nPlease connect to WiFi or mobile data and try again.</string>
+    <string name="open_wifi_settings">Open WiFi Settings</string>
+    <string name="cancel">Cancel</string>
+    <string name="image_not_found">⚠️ Image file not found: %s</string>
+    <string name="error_accessing_image">Error accessing image: %s</string>
+    <string name="enter_recipient">Please enter recipient email address</string>
+    <string name="image_attached">📎 Image attached</string>
+    <string name="send_email_via">Send email via</string>
+    <string name="no_email_app">No email app found. Please install an email client.</string>
+    <string name="app_not_installed">App not installed</string>
+    <string name="shared_from_draftspace">— Shared from DraftSpace</string>
+    <string name="no_results_for">No results found for "%s"</string>
 
 
 </resources>

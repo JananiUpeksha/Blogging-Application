@@ -76,7 +76,8 @@ public class SearchFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence s, int st, int b, int c) {
-                runSearch(s.toString().trim());
+                String query = s.toString().trim();
+                runSearch(query);
             }
 
             @Override public void afterTextChanged(Editable s) {}
@@ -122,32 +123,85 @@ public class SearchFragment extends Fragment {
         List<Message> results;
 
         if (query.isEmpty()) {
+            // Get all messages when search is empty
             results = db.getAllMessages();
         } else {
-            results = db.searchMessages(query);
+            // Get messages that match the search query (title or body only)
+            results = performAccurateSearch(query);
         }
 
+        // Apply filters AFTER search
         results = applyFilter(results);
+
+        // Apply search highlight to adapter (optional)
+        adapter.setSearchQuery(query);
         adapter.submitList(results);
 
         int count = results.size();
         binding.tvResultCount.setText(getString(R.string.results_found, count));
 
-        boolean isEmpty = count == 0 && !query.isEmpty();
+        boolean isEmpty = count == 0;
+        boolean shouldShowEmptyState = isEmpty && !query.isEmpty();
 
-        binding.emptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
-        binding.recyclerResults.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+        binding.emptyState.setVisibility(shouldShowEmptyState ? View.VISIBLE : View.GONE);
+        binding.recyclerResults.setVisibility(shouldShowEmptyState ? View.GONE : View.VISIBLE);
+
+        // Show helpful message for no results
+        if (shouldShowEmptyState) {
+            TextView emptyText = binding.emptyState.findViewById(android.R.id.text1);
+            if (emptyText != null) {
+                emptyText.setText(getString(R.string.no_results_for, query));
+            }
+        }
+    }
+
+    /**
+     * Perform accurate search only on title and body fields
+     */
+    private List<Message> performAccurateSearch(String query) {
+        List<Message> allMessages = db.getAllMessages();
+        List<Message> searchResults = new ArrayList<>();
+
+        String lowerCaseQuery = query.toLowerCase().trim();
+        String[] searchTerms = lowerCaseQuery.split("\\s+");
+
+        for (Message message : allMessages) {
+            String title = message.title != null ? message.title.toLowerCase() : "";
+            String body = message.body != null ? message.body.toLowerCase() : "";
+
+            // Check if any search term matches title OR body
+            boolean matches = false;
+            for (String term : searchTerms) {
+                if (term.length() > 0) {
+                    if (title.contains(term) || body.contains(term)) {
+                        matches = true;
+                        break;
+                    }
+                }
+            }
+
+            // Also check exact phrase match (if query has spaces)
+            if (!matches && lowerCaseQuery.contains(" ")) {
+                matches = title.contains(lowerCaseQuery) || body.contains(lowerCaseQuery);
+            }
+
+            if (matches) {
+                searchResults.add(message);
+            }
+        }
+
+        return searchResults;
     }
 
     private List<Message> applyFilter(List<Message> original) {
-
-        // 🔹 Always work on a copy (avoid mutating DB list)
+        // Always work on a copy (avoid mutating DB list)
         List<Message> list = new ArrayList<>(original);
 
         switch (currentFilter) {
-
             case FILTER_WITH_IMAGES:
                 list.removeIf(m -> m.imagePath == null || m.imagePath.isEmpty());
+                // Sort filtered results by most recent
+                Collections.sort(list, (a, b) -> Long.compare(b.timestamp, a.timestamp));
                 break;
 
             case FILTER_RECENT:
@@ -160,7 +214,7 @@ public class SearchFragment extends Fragment {
 
             case FILTER_ALL:
             default:
-                // Optional: default sort by recent
+                // Default sort by most recent
                 Collections.sort(list, (a, b) -> Long.compare(b.timestamp, a.timestamp));
                 break;
         }

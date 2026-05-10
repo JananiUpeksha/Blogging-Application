@@ -180,11 +180,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Search messages by title or body
+    // Search messages by title or body only (not image_path)
     public List<Message> searchMessages(String query) {
         List<Message> messages = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
 
         String likeQuery = "%" + query + "%";
+        // Query only title and body, exclude image_path
         Cursor cursor = db.query(
                 "messages",
                 null,

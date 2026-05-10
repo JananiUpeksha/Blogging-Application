@@ -1,11 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    res/xml/file_paths.xml
-    Referenced by the FileProvider in AndroidManifest.xml
-    Allows sharing camera-captured images from external files dir.
--->
 <paths>
+    <!-- External storage root -->
+    <external-path
+        name="external_root"
+        path="." />
+
+    <!-- App's private external storage -->
     <external-files-path
-        name="my_images"
+        name="external_files"
+        path="." />
+
+    <!-- Pictures directory -->
+    <external-files-path
+        name="pictures"
         path="Pictures/" />
+
+    <!-- DCIM/Camera directory -->
+    <external-path
+        name="dcim"
+        path="DCIM/" />
+
+    <!-- Internal app storage -->
+    <files-path
+        name="internal_files"
+        path="." />
+
+    <!-- Cache directory -->
+    <cache-path
+        name="cache"
+        path="." />
 </paths>

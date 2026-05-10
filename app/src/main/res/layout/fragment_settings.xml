@@ -92,7 +92,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="user@talkpal.app"
+                    android:text="user@draftspace.app"
                     android:textSize="17sp"
                     android:textStyle="bold"
                     android:textColor="@color/text_main" />
@@ -329,7 +329,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chat"
+                    android:text="Post"
                     android:textSize="10sp"
                     android:textColor="@color/text_muted" />
             </LinearLayout>
